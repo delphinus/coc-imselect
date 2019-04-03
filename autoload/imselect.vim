@@ -1,23 +1,14 @@
-function! imselect#start_observer() abort
-  let jobid = async#job#start(g:imselect#observer, {
-        \ 'on_stdout': function('imselect#observer#out'),
-        \ 'on_stderr': function('imselect#observer#out'),
-        \ 'on_exit': function('imselect#observer#exit'),
-        \ })
-  if jobid <= 0
-    call imselect#print_error('observer failed to start')
-  endif
+let g:imselect#bin_dir = resolve(expand('<sfile>:p:h') . '/../bin')
+let g:imselect#current_lang = ''
+let g:imselect#current_method = ''
+let g:imselect#default_color = {}
+ 
+function! imselect#start() abort
+  call imselect#observer#start()
 endfunction
 
 function! imselect#select_input(method) abort
-  let jobid = async#job#start(g:imselect#select . ' ' . a:method, {
-        \ 'on_stdout': function('imselect#select#handler'),
-        \ 'on_stderr': function('imselect#select#handler'),
-        \ 'on_exit': function('imselect#select#handler'),
-        \ })
-  if jobid <= 0
-    call imselect#print_error('select failed to start')
-  endif
+  call imselect#select#start(a:method)
 endfunction
 
 function! imselect#set_color(color) abort
@@ -43,16 +34,17 @@ function! imselect#get_color() abort
 endfunction
 
 function! imselect#read_default_color(jobid, data, event) abort
-  let parts = split(trim(a:data), ',\s*')
-  if len(parts) != 3
-    call imselect#print_error('invalid output from osascript: ' . a:data)
-    return
-  endif
-  let g:imselect#default_color = {
-        \ 'red': parts[0],
-        \ 'green': parts[1],
-        \ 'blue': parts[2],
-        \ }
+  for line in a:data
+    let parts = split(trim(line), ',\s*')
+    if len(parts) == 3
+      let g:imselect#default_color = {
+            \ 'red': parts[0],
+            \ 'green': parts[1],
+            \ 'blue': parts[2],
+            \ }
+      return
+    endif
+  endfor
 endfunction
 
 function! imselect#print_error(msg) abort
