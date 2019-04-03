@@ -1,22 +1,29 @@
+let s:jobid
 let g:imselect#observer#path = g:imselect#bin_dir . '/observer'
 
 function! imselect#observer#start() abort
-  let jobid = jobstart(g:imselect#observer#path, {
-        \ 'on_stdout': function('imselect#observer#out'),
-        \ 'on_stderr': function('imselect#observer#out'),
-        \ 'on_exit': function('imselect#observer#exit'),
+  let Handler = function('imselect#observer#handler')
+  let s:jobid = jobstart(g:imselect#observer#path, {
+        \ 'on_stdout': Handler,
+        \ 'on_stderr': Handler,
+        \ 'on_exit': Handler,
         \ 'pty': v:true,
         \ 'width': 80,
         \ 'height': 30,
         \ 'TERM': 'xterm-color',
         \ })
-  if jobid <= 0
+  if s:jobid <= 0
     call imselect#print_error('observer failed to start')
   endif
 endfunction
 
-function! imselect#observer#out(jobid, data, event) abort
+function! imselect#observer#handler(jobid, data, event) abort
   if a:event ==# 'stderr'
+    return
+  elseif a:event ==# 'exit'
+    if a:data != 0
+      call imselect#print_error('invalid exit code from observer: ' . a:data)
+    endif
     return
   endif
   for line in a:data
@@ -36,10 +43,4 @@ function! imselect#observer#out(jobid, data, event) abort
     endif
     return
   endfor
-endfunction
-
-function! imselect#observer#exit(jobid, data, event) abort
-  if a:data != 0
-    call imselect#print_error('invalid exit code from observer: ' . a:data)
-  endif
 endfunction
