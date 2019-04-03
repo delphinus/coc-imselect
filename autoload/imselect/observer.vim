@@ -1,10 +1,14 @@
 let g:imselect#observer#path = g:imselect#bin_dir . '/observer'
 
 function! imselect#observer#start() abort
-  let jobid = async#job#start(g:imselect#observer#path, {
+  let jobid = jobstart(g:imselect#observer#path, {
         \ 'on_stdout': function('imselect#observer#out'),
         \ 'on_stderr': function('imselect#observer#out'),
         \ 'on_exit': function('imselect#observer#exit'),
+        \ 'pty': v:true,
+        \ 'width': 80,
+        \ 'height': 30,
+        \ 'TERM': 'xterm-color',
         \ })
   if jobid <= 0
     call imselect#print_error('observer failed to start')
@@ -16,7 +20,8 @@ function! imselect#observer#out(jobid, data, event) abort
     return
   endif
   for line in a:data
-    let parts = split(trim(a:data[-1]))
+    call imselect#print_info(line)
+    let parts = split(trim(line))
     if len(parts) != 2
       continue
     endif

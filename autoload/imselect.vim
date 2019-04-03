@@ -1,4 +1,5 @@
 let g:imselect#bin_dir = resolve(expand('<sfile>:p:h') . '/../bin')
+let g:imselect#highlights = {'red': '65535', 'green': '0', 'blue': '0'}
 let g:imselect#current_lang = ''
 let g:imselect#current_method = ''
 let g:imselect#default_color = {}
@@ -12,7 +13,7 @@ function! imselect#select_input(method) abort
 endfunction
 
 function! imselect#set_color(color) abort
-  if type(a:color) != v:dict
+  if type(a:color) != v:t_dict
     call imselect#print_error('color should be dict')
     return
   endif
@@ -21,7 +22,7 @@ function! imselect#set_color(color) abort
         \ '    set cursor color to {%s, %s, %s, 0}' . "\n" .
         \ '  end tell' . "\n" .
         \ 'end tell' . "\n",
-        \ a:color.red, a:color.green, a:color.blue))
+        \ a:color.red, a:color.green, a:color.blue), {})
 endfunction
 
 function! imselect#get_color() abort
@@ -45,6 +46,10 @@ function! imselect#read_default_color(jobid, data, event) abort
       return
     endif
   endfor
+endfunction
+
+function! imselect#print_info(msg) abort
+  echomsg '[imselect] ' . a:msg
 endfunction
 
 function! imselect#print_error(msg) abort
