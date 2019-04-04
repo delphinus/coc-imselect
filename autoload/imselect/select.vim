@@ -20,7 +20,7 @@ endfunction
 
 function! imselect#select#wait(method) abort
   let jobid = imselect#select#start(a:method)
-  let results = async#job#wait(jobid)
+  let results = async#job#wait([jobid])
   if results[0] != 0
     call imselect#print_error('invalid exit code from select: ' . status)
   endif
