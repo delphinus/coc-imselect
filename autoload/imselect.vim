@@ -12,7 +12,7 @@ function! imselect#start() abort
 endfunction
 
 function! imselect#close() abort
-  call imselect#select#wait(g:imselect#default_method)
+  call imselect#select#default_wait()
   call imselect#observer#stop()
 endfunction
 
@@ -59,7 +59,7 @@ endfunction
 function! imselect#forcus_gained() abort
   call imselect#print_debug('FocusGained')
   if mode() ==# 'n'
-    call imselect#select#start(g:imselect#default_method)
+    call imselect#select#default()
   endif
 endfunction
 
@@ -74,7 +74,7 @@ endfunction
 function! imselect#insert_leave() abort
   call imselect#print_debug('InsertLeave')
   let s:method_cache[bufnr('')] = g:imselect#current_method
-  call imselect#select#start(g:imselect#default_method)
+  call imselect#select#default()
 endfunction
 
 function! imselect#print_debug(msg) abort

@@ -3,7 +3,7 @@ let g:imselect#observer#path = g:imselect#bin_dir . '/observer'
 
 function! imselect#observer#start() abort
   let Handler = function('imselect#observer#handler')
-  let s:jobid = jobstart(g:imselect#observer#path, {
+  let s:jobid = async#job#start(g:imselect#observer#path, {
         \ 'on_stdout': Handler,
         \ 'on_stderr': Handler,
         \ 'on_exit': Handler,
@@ -19,9 +19,11 @@ endfunction
 
 function! imselect#observer#stop() abort
   call async#job#stop(s:jobid)
+  let s:jobid = 0
 endfunction
 
 function! imselect#observer#handler(jobid, data, event) abort
+  call imselect#print_debug(a:event . ' in observer')
   if a:event !=# 'stdout'
     return
   endif

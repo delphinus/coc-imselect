@@ -1,10 +1,11 @@
 let g:imselect#select#path = g:imselect#bin_dir . '/select'
 
 function! imselect#select#start(method) abort
+  let Handler = function('imselect#select#handler')
   let jobid = async#job#start([g:imselect#select#path, a:method], {
-        \ 'on_stdout': function('imselect#select#handler'),
-        \ 'on_stderr': function('imselect#select#handler'),
-        \ 'on_exit': function('imselect#select#handler'),
+        \ 'on_stdout': Handler,
+        \ 'on_stderr': Handler,
+        \ 'on_exit': Handler,
         \ })
   if jobid <= 0
     call imselect#print_error('select failed to start')
@@ -18,10 +19,17 @@ function! imselect#select#handler(jobid, data, event) abort
   endif
 endfunction
 
-function! imselect#select#wait(method) abort
-  let jobid = imselect#select#start(a:method)
+function! imselect#select#default() abort
+  if g:imselect#current_lang ==# 'en'
+    return
+  endif
+  call imselect#select#start(g:imselect#default_method)
+endfunction
+
+function! imselect#select#default_wait() abort
+  let jobid = imselect#select#start(g:imselect#default_method)
   let results = async#job#wait([jobid])
   if results[0] != 0
-    call imselect#print_error('invalid exit code from select: ' . status)
+    call imselect#print_error('invalid exit code from select: ' . results[0])
   endif
 endfunction
