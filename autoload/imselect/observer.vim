@@ -1,4 +1,4 @@
-let s:jobid
+let s:jobid = 0
 let g:imselect#observer#path = g:imselect#bin_dir . '/observer'
 
 function! imselect#observer#start() abort
@@ -17,17 +17,16 @@ function! imselect#observer#start() abort
   endif
 endfunction
 
+function! imselect#observer#stop() abort
+  call async#job#stop(s:jobid)
+endfunction
+
 function! imselect#observer#handler(jobid, data, event) abort
-  if a:event ==# 'stderr'
-    return
-  elseif a:event ==# 'exit'
-    if a:data != 0
-      call imselect#print_error('invalid exit code from observer: ' . a:data)
-    endif
+  if a:event !=# 'stdout'
     return
   endif
   for line in a:data
-    call imselect#print_info(line)
+    call imselect#print_debug(line)
     let parts = split(trim(line))
     if len(parts) != 2
       continue

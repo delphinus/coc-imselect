@@ -3,9 +3,17 @@ let g:imselect#highlights = {'red': '65535', 'green': '0', 'blue': '0'}
 let g:imselect#current_lang = ''
 let g:imselect#current_method = ''
 let g:imselect#default_color = {}
+let g:imselect#default_method = 'com.apple.keylayout.US'
+let g:imselect#debug = 0
+let s:method_cache = {}
  
 function! imselect#start() abort
   call imselect#observer#start()
+endfunction
+
+function! imselect#close() abort
+  call imselect#select#wait(g:imselect#default_method)
+  call imselect#observer#stop()
 endfunction
 
 function! imselect#select_input(method) abort
@@ -48,10 +56,37 @@ function! imselect#read_default_color(jobid, data, event) abort
   endfor
 endfunction
 
-function! imselect#print_info(msg) abort
-  echomsg '[imselect] ' . a:msg
+function! imselect#forcus_gained() abort
+  call imselect#print_debug('FocusGained')
+  if mode() ==# 'n'
+    call imselect#select#start(g:imselect#default_method)
+  endif
+endfunction
+
+function! imselect#insert_enter() abort
+  call imselect#print_debug('InsertEnter')
+  let method = get(s:method_cache, bufnr(''), '')
+  if method && method !=# g:imselect#current_method
+    call imselect#select#start(method)
+  endif
+endfunction
+
+function! imselect#insert_leave() abort
+  call imselect#print_debug('InsertLeave')
+  let s:method_cache[bufnr('')] = g:imselect#current_method
+  call imselect#select#start(g:imselect#default_method)
+endfunction
+
+function! imselect#print_debug(msg) abort
+  if g:imselect#debug
+    echomsg '[imselect] ' . a:msg
+  endif
 endfunction
 
 function! imselect#print_error(msg) abort
   echohl WarningMsg | echomsg '[imselect] ' . a:msg | echohl None
+endfunction
+
+function! imselect#method_cache() abort
+  return s:method_cache
 endfunction
